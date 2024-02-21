@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless patterns - REST API regional with Lambda proxy integration
+
+Parameters:
+
+  DomainName:
+    Type: String
+
+  CertificateArn:
+    Type: String
+
+  PublicHostedZoneId:
+    Type: String
+  
+  Stage:
+    Type: String
+
+Resources:
+#Lambda function
+  Service1LambdaRegionalApi:
+    Type: AWS::Serverless::Function 
+    Properties:
+      Handler: index.lambda_handler
+      InlineCode: |
+        import json
+        import os
+
+        def lambda_handler(event, context):
+            return {
+        "statusCode": 200,
+        "body": json.dumps({
+          "service" : "service1",
+          "region" : os.environ['AWS_REGION']}),
+        }
+      Runtime: python3.9
+      Events:
+        HelloWorld:
+          Type: Api 
+          Properties: 
+            Path: /
+            Method: get
+            RestApiId:
+              Ref: ApiRegional
+              
+  # REST Regional API
+  ApiRegional:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: service1
+      StageName: prod
+      EndpointConfiguration: REGIONAL
+
+  # Custom domains
+  CustomDomainRegional:
+    Type: AWS::ApiGatewayV2::DomainName
+    DependsOn:
+      - ApiRegional
+    Properties:
+      DomainName: !Ref DomainName
+      DomainNameConfigurations:
+      - SecurityPolicy: TLS_1_2
+        CertificateArn: !Ref CertificateArn
+        EndpointType: REGIONAL
+
+  MappingRegional:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn:
+      - CustomDomainRegional
+    Properties:
+      DomainName: !Ref DomainName
+      ApiId: !Ref ApiRegional
+      Stage: !Ref Stage
+
+  Route53AliasRecordRegional:
+    Type: AWS::Route53::RecordSet
+    DependsOn:
+      - CustomDomainRegional
+    Properties:
+      Name: !Ref DomainName
+      Type: A
+      HostedZoneId: !Ref PublicHostedZoneId
+      AliasTarget:
+        DNSName: !GetAtt CustomDomainRegional.RegionalDomainName
+        HostedZoneId: !GetAtt CustomDomainRegional.RegionalHostedZoneId
+
+# Outputs
+Outputs:
+  EndpointUrl:
+    Description: 'REST regional endpoint URL'
+    Value: !Sub 'https://${ApiRegional}.execute-api.${AWS::Region}.amazonaws.com/prod'
+  # Custom Domain Name endpoint to be used during tests
+  CustomDomainNameEndpoint:
+    Description: Custom Domain Name endpoint
+    Value: !Sub "https://${DomainName}"
+

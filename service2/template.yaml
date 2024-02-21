@@ -18,30 +18,6 @@ Parameters:
 
 Resources:
 #Lambda function
-  Service1LambdaRegionalApi:
-    Type: AWS::Serverless::Function 
-    Properties:
-      Handler: index.lambda_handler
-      InlineCode: |
-        import json
-        import os
-
-        def lambda_handler(event, context):
-            return {
-        "statusCode": 200,
-        "body": json.dumps({
-          "service" : "service1",
-          "region" : os.environ['AWS_REGION']}),
-        }
-      Runtime: python3.9
-      Events:
-        HelloWorld:
-          Type: Api 
-          Properties: 
-            Path: /
-            Method: get
-            RestApiId:
-              Ref: Service1ApiRegional
   Service2LambdaRegionalApi:
     Type: AWS::Serverless::Function 
     Properties:
@@ -65,16 +41,10 @@ Resources:
             Path: /
             Method: get
             RestApiId:
-              Ref: Service2ApiRegional
+              Ref: ApiRegional
               
   # REST Regional API
-  Service1ApiRegional:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: service1
-      StageName: prod
-      EndpointConfiguration: REGIONAL
-  Service2ApiRegional:
+  ApiRegional:
     Type: AWS::Serverless::Api
     Properties:
       Name: service2
@@ -85,7 +55,7 @@ Resources:
   CustomDomainRegional:
     Type: AWS::ApiGatewayV2::DomainName
     DependsOn:
-      - Service1ApiRegional
+      - ApiRegional
     Properties:
       DomainName: !Ref DomainName
       DomainNameConfigurations:
@@ -99,7 +69,7 @@ Resources:
       - CustomDomainRegional
     Properties:
       DomainName: !Ref DomainName
-      ApiId: !Ref Service1ApiRegional
+      ApiId: !Ref ApiRegional
       Stage: !Ref Stage
 
   Route53AliasRecordRegional:
@@ -116,12 +86,9 @@ Resources:
 
 # Outputs
 Outputs:
-  Service1EndpointUrl:
+  EndpointUrl:
     Description: 'REST regional endpoint URL'
-    Value: !Sub 'https://${Service1ApiRegional}.execute-api.${AWS::Region}.amazonaws.com/prod'
-  Service2EndpointUrl:
-    Description: 'REST regional endpoint URL'
-    Value: !Sub 'https://${Service2ApiRegional}.execute-api.${AWS::Region}.amazonaws.com/prod'
+    Value: !Sub 'https://${ApiRegional}.execute-api.${AWS::Region}.amazonaws.com/prod'
   # Custom Domain Name endpoint to be used during tests
   CustomDomainNameEndpoint:
     Description: Custom Domain Name endpoint
