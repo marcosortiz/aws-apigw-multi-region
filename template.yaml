@@ -13,9 +13,6 @@ Parameters:
   PublicHostedZoneId:
     Type: String
   
-  ApiId: 
-    Type: String
-  
   Stage:
     Type: String
 
@@ -87,6 +84,8 @@ Resources:
   # Custom domains
   CustomDomainRegional:
     Type: AWS::ApiGatewayV2::DomainName
+    DependsOn:
+      - Service1ApiRegional
     Properties:
       DomainName: !Ref DomainName
       DomainNameConfigurations:
@@ -100,7 +99,7 @@ Resources:
       - CustomDomainRegional
     Properties:
       DomainName: !Ref DomainName
-      ApiId: !Ref ApiId
+      ApiId: !Ref Service1ApiRegional
       Stage: !Ref Stage
 
   Route53AliasRecordRegional:
