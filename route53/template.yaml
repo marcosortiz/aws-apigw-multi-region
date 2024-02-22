@@ -17,6 +17,14 @@ Resources:
       Name: Service1ControlPanel
       ClusterArn: !Ref MultiRegionApisCluster
 
+  Service2ControlPanel:
+    Type: AWS::Route53RecoveryControl::ControlPanel
+    DependsOn:
+      - MultiRegionApisCluster
+    Properties:
+      Name: Service2ControlPanel
+      ClusterArn: !Ref MultiRegionApisCluster
+
 Outputs:
   Route53ClusterArn:
     Description: 'Route 53 Cluster Arn'
@@ -24,3 +32,6 @@ Outputs:
   Service1ControlPanelArn:
     Description: 'Route 53 Cluster Arn'
     Value: !Ref Service1ControlPanel
+  Service2ControlPanelArn:
+    Description: 'Route 53 Cluster Arn'
+    Value: !Ref Service2ControlPanel

@@ -2,7 +2,17 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Serverless patterns - REST API regional with Lambda proxy integration
 
+# TODO: use conditions https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-sample-templates.html#w9aac34c28c21c31b5
 Parameters:
+
+  PublicHostedZoneId:
+    Type: String
+
+  Route53ArcClusterArn:
+    Type: String
+
+  Service2ControlPanelArn:
+    Type: String
 
   DomainName:
     Type: String
@@ -10,11 +20,19 @@ Parameters:
   CertificateArn:
     Type: String
 
-  PublicHostedZoneId:
-    Type: String
-  
   Stage:
     Type: String
+  
+  FailoverType:
+    Type: String
+    Default: PRIMARY
+    AllowedValues:
+      - PRIMARY
+      - SECONDARY
+
+Conditions:
+  isPrimaryRegion: !Equals [!Ref FailoverType, PRIMARY]
+  isSecondaryRegion: !Equals [!Ref FailoverType, SECONDARY]
 
 Resources:
 #Lambda function
@@ -72,24 +90,63 @@ Resources:
       ApiId: !Ref ApiRegional
       Stage: !Ref Stage
 
-  Route53AliasRecordRegional:
+  Service2RoutingControlPrimary:
+    Type: AWS::Route53RecoveryControl::RoutingControl
+    Condition: isPrimaryRegion
+    Properties:
+      ClusterArn: !Ref Route53ArcClusterArn
+      ControlPanelArn: !Ref Service2ControlPanelArn
+      Name: service2-primary-rc
+
+  Service2PrimaryHealthCheck:
+    Type: AWS::Route53::HealthCheck
+    Condition: isPrimaryRegion
+    DependsOn:
+      - Service2RoutingControlPrimary
+    Properties:
+      HealthCheckConfig:
+        Type: RECOVERY_CONTROL
+        RoutingControlArn: !Ref Service2RoutingControlPrimary
+
+  Service2RoutingControlSecondary:
+    Type: AWS::Route53RecoveryControl::RoutingControl
+    Condition: isSecondaryRegion
+    Properties:
+      ClusterArn: !Ref Route53ArcClusterArn
+      ControlPanelArn: !Ref Service2ControlPanelArn
+      Name: service2-secondary-rc
+
+  Service2SecondaryHealthCheck:
+    Type: AWS::Route53::HealthCheck
+    Condition: isSecondaryRegion
+    DependsOn:
+      - Service2RoutingControlSecondary
+    Properties:
+      HealthCheckConfig:
+        Type: RECOVERY_CONTROL
+        RoutingControlArn: !Ref Service2RoutingControlSecondary
+
+  Route53AliasRecordRegionalPrimary:
     Type: AWS::Route53::RecordSet
     DependsOn:
       - CustomDomainRegional
     Properties:
       Name: !Ref DomainName
       Type: A
+      Failover: !Ref FailoverType
+      SetIdentifier: !If [isPrimaryRegion, 1, 2]
+      HealthCheckId: !If [isPrimaryRegion, !Ref Service2PrimaryHealthCheck, !Ref Service2SecondaryHealthCheck]
       HostedZoneId: !Ref PublicHostedZoneId
       AliasTarget:
         DNSName: !GetAtt CustomDomainRegional.RegionalDomainName
         HostedZoneId: !GetAtt CustomDomainRegional.RegionalHostedZoneId
+
 
 # Outputs
 Outputs:
   EndpointUrl:
     Description: 'REST regional endpoint URL'
     Value: !Sub 'https://${ApiRegional}.execute-api.${AWS::Region}.amazonaws.com/prod'
-  # Custom Domain Name endpoint to be used during tests
   CustomDomainNameEndpoint:
     Description: Custom Domain Name endpoint
     Value: !Sub "https://${DomainName}"
