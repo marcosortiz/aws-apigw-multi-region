@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Serverless patterns - REST API regional with Lambda proxy integration
 
-# TODO: use conditions https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/conditions-sample-templates.html#w9aac34c28c21c31b5
 Parameters:
 
   PublicHostedZoneId:
