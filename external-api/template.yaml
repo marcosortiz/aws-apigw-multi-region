@@ -1,0 +1,186 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless patterns - REST API multi-region failover external api
+
+Parameters:
+
+  # PublicHostedZoneId:
+  #   Type: String
+
+  # Route53ArcClusterArn:
+  #   Type: String
+
+  # ExternalApiControlPanelArn:
+  #   Type: String
+
+  # DomainName:
+  #   Type: String
+  
+  Service1DomainName:
+    Type: String
+
+  # CertificateArn:
+  #   Type: String
+
+  Stage:
+    Type: String
+    Default: prod
+  
+  # FailoverType:
+  #   Type: String
+  #   Default: PRIMARY
+  #   AllowedValues:
+  #     - PRIMARY
+  #     - SECONDARY
+
+# Conditions:
+#   isPrimaryRegion: !Equals [!Ref FailoverType, PRIMARY]
+#   isSecondaryRegion: !Equals [!Ref FailoverType, SECONDARY]
+
+Resources:
+    
+  # REST API
+  ExternalApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: external-api
+      Description: HTTP Integration REST API demo
+
+  # GET Method with HTTP integration
+  RootMethodGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ExternalApi
+      ResourceId: !GetAtt ExternalApi.RootResourceId
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: GET
+        Uri: !Ref Service1DomainName
+
+  Deployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+    - RootMethodGet
+    Properties:
+      RestApiId: !Ref ExternalApi
+  
+  ExternalApiStage:  
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: !Ref Stage
+      RestApiId: !Ref ExternalApi
+      DeploymentId: !Ref Deployment
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  # # Custom domains
+  # CustomDomainRegional:
+  #   Type: AWS::ApiGatewayV2::DomainName
+  #   DependsOn:
+  #     - ExternalApi
+  #   Properties:
+  #     DomainName: !Ref DomainName
+  #     DomainNameConfigurations:
+  #     - SecurityPolicy: TLS_1_2
+  #       CertificateArn: !Ref CertificateArn
+  #       EndpointType: REGIONAL
+
+  # MappingRegional:
+  #   Type: AWS::ApiGatewayV2::ApiMapping
+  #   DependsOn:
+  #     - CustomDomainRegional
+  #   Properties:
+  #     DomainName: !Ref DomainName
+  #     ApiId: !Ref ExternalApi
+  #     Stage: !Ref Stage
+
+  # ExternalApiRoutingControlPrimary:
+  #   Type: AWS::Route53RecoveryControl::RoutingControl
+  #   Condition: isPrimaryRegion
+  #   Properties:
+  #     ClusterArn: !Ref Route53ArcClusterArn
+  #     ControlPanelArn: !Ref ExternalApiControlPanelArn
+  #     Name: external-api-primary-rc
+
+  # ExternalApiPrimaryHealthCheck:
+  #   Type: AWS::Route53::HealthCheck
+  #   Condition: isPrimaryRegion
+  #   DependsOn:
+  #     - ExternalApiRoutingControlPrimary
+  #   Properties:
+  #     HealthCheckConfig:
+  #       Type: RECOVERY_CONTROL
+  #       RoutingControlArn: !Ref ExternalApiRoutingControlPrimary
+
+  # ExternalApiRoutingControlSecondary:
+  #   Type: AWS::Route53RecoveryControl::RoutingControl
+  #   Condition: isSecondaryRegion
+  #   Properties:
+  #     ClusterArn: !Ref Route53ArcClusterArn
+  #     ControlPanelArn: !Ref ExternalApiControlPanelArn
+  #     Name: external-api-secondary-rc
+
+  # ExternalApiSecondaryHealthCheck:
+  #   Type: AWS::Route53::HealthCheck
+  #   Condition: isSecondaryRegion
+  #   DependsOn:
+  #     - ExternalApiRoutingControlSecondary
+  #   Properties:
+  #     HealthCheckConfig:
+  #       Type: RECOVERY_CONTROL
+  #       RoutingControlArn: !Ref ExternalApiRoutingControlSecondary
+
+  # Route53AliasRecordRegionalPrimary:
+  #   Type: AWS::Route53::RecordSet
+  #   DependsOn:
+  #     - CustomDomainRegional
+  #   Properties:
+  #     Name: !Ref DomainName
+  #     Type: A
+  #     Failover: !Ref FailoverType
+  #     SetIdentifier: !If [isPrimaryRegion, 1, 2]
+  #     HealthCheckId: !If [isPrimaryRegion, !Ref ExternalApiPrimaryHealthCheck, !Ref ExternalApiSecondaryHealthCheck]
+  #     HostedZoneId: !Ref PublicHostedZoneId
+  #     AliasTarget:
+  #       DNSName: !GetAtt CustomDomainRegional.RegionalDomainName
+  #       HostedZoneId: !GetAtt CustomDomainRegional.RegionalHostedZoneId
+
+
+# Outputs
+Outputs:
+  EndpointUrl:
+    Description: 'REST regional endpoint URL'
+    Value: !Sub 'https://${ExternalApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}'
+  # CustomDomainNameEndpoint:
+  #   Description: Custom Domain Name endpoint
+  #   Value: !Sub "https://${DomainName}"
+
