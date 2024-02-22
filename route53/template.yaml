@@ -8,6 +8,7 @@ Resources:
     Type: AWS::Route53RecoveryControl::Cluster
     Properties:
       Name: multi-region-apis-cluster
+
   Service1ControlPanel:
     Type: AWS::Route53RecoveryControl::ControlPanel
     DependsOn:
@@ -16,51 +17,10 @@ Resources:
       Name: Service1ControlPanel
       ClusterArn: !Ref MultiRegionApisCluster
 
-  Service1RoutingControlPrimary:
-    Type: AWS::Route53RecoveryControl::RoutingControl
-    DependsOn:
-      - MultiRegionApisCluster
-      - Service1ControlPanel
-    Properties:
-      ClusterArn: !Ref MultiRegionApisCluster
-      ControlPanelArn: !Ref Service1ControlPanel
-      Name: service1-primary-rc
-
-  Service1PrimaryHealthCheck:
-    Type: AWS::Route53::HealthCheck
-    DependsOn:
-      - Service1RoutingControlPrimary
-    Properties:
-      HealthCheckConfig:
-        Type: RECOVERY_CONTROL
-        RoutingControlArn: !Ref Service1RoutingControlPrimary
-
-  Service1RoutingControlSecondary:
-    Type: AWS::Route53RecoveryControl::RoutingControl
-    DependsOn:
-      - MultiRegionApisCluster
-      - Service1ControlPanel
-    Properties:
-      ClusterArn: !Ref MultiRegionApisCluster
-      ControlPanelArn: !Ref Service1ControlPanel
-      Name: service1-secondary-rc
-
-  Service1SecondaryHealthCheck:
-    Type: AWS::Route53::HealthCheck
-    DependsOn:
-      - Service1RoutingControlSecondary
-    Properties:
-      HealthCheckConfig:
-        Type: RECOVERY_CONTROL
-        RoutingControlArn: !Ref Service1RoutingControlSecondary
-
-# Outputs
-# Outputs:
-#   EndpointUrl:
-#     Description: 'REST regional endpoint URL'
-#     Value: !Sub 'https://${ApiRegional}.execute-api.${AWS::Region}.amazonaws.com/prod'
-#   # Custom Domain Name endpoint to be used during tests
-#   CustomDomainNameEndpoint:
-#     Description: Custom Domain Name endpoint
-#     Value: !Sub "https://${DomainName}"
-
+Outputs:
+  Route53ClusterArn:
+    Description: 'Route 53 Cluster Arn'
+    Value: !Ref MultiRegionApisCluster
+  Service1ControlPanelArn:
+    Description: 'Route 53 Cluster Arn'
+    Value: !Ref Service1ControlPanel
