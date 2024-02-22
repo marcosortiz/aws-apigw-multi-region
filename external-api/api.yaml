@@ -1,0 +1,19 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "external-api",
+  },
+  "paths" : {
+    "/service1" : {
+      "get" : {
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "GET",
+          "uri" : { "Ref" : "Service1HttpsEndpoint" },
+          "passthroughBehavior" : "when_no_match",
+          "type" : "http_proxy"
+        }
+      }
+    }
+  },
+  "components" : { }
+}
