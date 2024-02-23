@@ -77,24 +77,8 @@ Resources:
             RestApiId:
               Ref: ExternalApi
 
-
-  # GET Method with HTTP integration
-  RootMethodGet:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref ExternalApi
-      ResourceId: !GetAtt ExternalApi.RootResourceId
-      HttpMethod: GET
-      AuthorizationType: NONE
-      Integration:
-        Type: HTTP_PROXY
-        IntegrationHttpMethod: GET
-        Uri: !Ref Service1HttpsEndpoint
-
   Deployment:
     Type: AWS::ApiGateway::Deployment
-    DependsOn:
-    - RootMethodGet
     Properties:
       RestApiId: !Ref ExternalApi
   
