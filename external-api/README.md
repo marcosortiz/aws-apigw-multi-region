@@ -1,8 +1,10 @@
-# Amazon API Gateway REST API with HTTP integration
+# Serverless patterns - Multi-Region REST API Failover with Route 53 ARC: Service 1
 
-The SAM template deploys an Amazon API Gateway REST API endpoint with a simple public HTTP endpoint integration.
+Service1 consists of a regional rest API with a single root path calling a Lambda function.
 
-Learn more about this pattern at Serverless Land Patterns: [https://serverlessland.com/patterns/apigw-rest-api-http-integration](https://serverlessland.com/patterns/apigw-rest-api-http-integration)
+This pattern deploys service1 on a primary and secondaty region. It will also setup Route53 public failover records and Route 53 ARC routing controls for you.
+
+Learn more about this pattern at Serverless Land Patterns: << Add the live URL here >>
 
 Important: this application uses various AWS services and there are costs associated with these services after the Free Tier usage - please see the [AWS Pricing page](https://aws.amazon.com/pricing/) for details. You are responsible for any AWS costs incurred. No warranty is implied in this example.
 
@@ -19,39 +21,108 @@ Important: this application uses various AWS services and there are costs associ
     ``` 
     git clone https://github.com/aws-samples/serverless-patterns
     ```
-2. Change directory to the pattern directory:
+1. Change directory to the pattern directory:
     ```
-    cd apigw-rest-api-http-integration
+    cd aws-apigw-multi-region/service1
     ```
-3. From the command line, use AWS SAM to deploy the AWS resources for the pattern as specified in the template.yml file:
+1. From the command line, use AWS SAM to deploy the AWS resources for the pattern as specified in the template.yml file on the primary region:
     ```
-    sam deploy -g
+    sam deploy --guided --config-env primary
     ```
 1. During the prompts:
-    * Enter a stack name
-    * Select the desired AWS Region
-    * Input the HTTP endpoint URL for the integration, i.e. https://example.com
-    * Allow SAM to create roles with the required permissions if needed.
+    * **Stack Name:** Enter a stack name.
+    * **AWS Region:** Enter the desired AWS Region. This pattern has been tested with both us-east-1 and us-east-2.
+    * **PublicHostedZoneId:** You must have a public hosted zone in Route 53 with your domain name (i.e. mydomain.com). Enter the Hosted Zone Id for this hosted zone.
+    * **DomainName:** Enter your custom domain name (i.e. externalapi.mydomain.com).
+    * **CertificateArn** You must have a ACM Certificate that covers your Custom Domain namespace (i.e. *.mydomain.com) on the region your are deploying this stack. Enter the ARN for this certificate here. **Make sure you are getting the certificate arn for the right region**.
+    * **Route53ArcClusterArn:** Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the Route 53 Cluster Arn created during that deployment.
+    * **ExternalApiControlPanelArn**: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the  Route 53 ARC control pane Arn for service 1.
+    * **Service1HttpsEndpoint**: The https endpoint for service1 (https://service1.mydomain.com).
+    * **Service2HttpsEndpoint**: The https endpoint for service2 (https://service2.mydomain.com).
+    * **Stage:** Enter the name of the stage within your API Gateway that you would like to map to your custom domain name.
+    * **FailoverType:** Accept the defauls and use **PRIMARY** here.
+    * Allow SAM CLI to create IAM roles with the required permissions.
+    * Allow SAM CLI to create the Service1LambdaRegionalApi Lambda function.
+    * **SAM configuration environment** Accept the **primary** default value.
 
-    Once you have run guided mode once, you can use `sam deploy` in future to use these defaults.
+    Once you have run `sam deploy --guided --config-env primary` mode once and saved arguments to a configuration file (samconfig.toml), you can use `sam deploy --config-env primary` in future to use these defaults.
 
+1. From the command line, use AWS SAM to deploy the AWS resources for the pattern as specified in the template.yml file on the primary region:
+    ```
+    sam deploy --guided --config-env secondary
+    ```
+1. During the prompts:
+    * **Stack Name:** Enter a stack name.
+    * **AWS Region:** Enter the desired AWS Region. This pattern has been tested with both us-east-1 and us-east-2. **Make sure to use a different region from the prymary one**.
+    * **PublicHostedZoneId:** You must have a public hosted zone in Route 53 with your domain name (i.e. mydomain.com). Enter the Hosted Zone Id for this hosted zone.
+    * **DomainName:** Enter your custom domain name (i.e. externalapi.mydomain.com).
+    * **CertificateArn** You must have a ACM Certificate that covers your Custom Domain namespace (i.e. *.mydomain.com) on the region your are deploying this stack. Enter the ARN for this certificate here. **Make sure you are getting the certificate arn for the right region**.
+    * Route53ArcClusterArn: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the Route 53 Cluster Arn created during that deployment.
+    * **Service1ControlPlaneArn**: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the  Route 53 ARC control pane Arn for service 1.
+    * **Stage:** Enter the name of the stage within your API Gateway that you would like to map to your custom domain name.
+    * **FailoverType:** Accept the defauls and use **SECONDARY** here.
+    * Allow SAM CLI to create IAM roles with the required permissions.
+    * Allow SAM CLI to create the Service1LambdaRegionalApi Lambda function.
+    * **SAM configuration environment** Accept the **primary** default value.
+
+    Once you have run `sam deploy --guided --config-env secondary` mode once and saved arguments to a configuration file (samconfig.toml), you can use `sam deploy --config-env secondary` in future to use these defaults.
+    
 1. Note the outputs from the SAM deployment process. These contain the resource names and/or ARNs which are used for testing.
+
+## How it works
+
+This pattern deploys an Amazon API Gateway Rest Regional API with a Lambda integration. The AWS Lambda function is written in Python3.9. The function returns a small message and a status code to the caller.
+The inline code of the lambda is written in the template itself.
 
 ## Testing
 
-The stack will output the **api endpoint**. Visit that URL in your browser or make an HTTP request to the endpoint using *curl* to test the HTTP integration.
-   
+Once the stack is deployed, get the API endpoint from the EndpointUrl output parameter.
+Paste the URL in a browser, or in Postman, or using the curl command.
+Eg: 
+```bash
+curl https://aabbccddee.execute-api.us-east-1.amazonaws.com/prod
+```
+
+You should see a response similar to:
+```json
+{"service": "external-api", "region": "your-selected-region"}
+```
+
+
+Now test that one of your regional services is accessible via your custom fomain.
+You can get that URL from the **CustomDomainNameEndpoint** output parameter.
+Eg: 
+```bash
+curl https://externalapi.mydomain.com
+```
+
+You should see a response similar to:
+```json
+{"service": "external-api", "region": "your-primary-region"}
+```
+
+You can failover service 1 fromthe primary to the secondary region by running the following command:
+```bash
+TODO: add failover command
+
+```
+
+After 1 or 2 minutes, you should see responses to service 1 custom domain endpoint (i.e https://externalapi.mydomain.com) being serverd from the secondary region:
+```json
+{"service": "external-api", "region": "your-secondary-region"}
+```
+
 ## Cleanup
  
-1. Delete the stack
+1. Delete the stack on the primary region.
     ```bash
-    sam delete
+    sam delete --config-env primary
     ```
-1. Confirm the stack has been deleted
+1. Delete the stack on the secondary region.
     ```bash
-    aws cloudformation list-stacks --query "StackSummaries[?contains(StackName,'STACK_NAME')].StackStatus"
+    sam delete --config-env secondary
     ```
 ----
-Copyright 2022 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+Copyright 2023 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 SPDX-License-Identifier: MIT-0

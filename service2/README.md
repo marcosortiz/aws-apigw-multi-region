@@ -35,7 +35,7 @@ Important: this application uses various AWS services and there are costs associ
     * **PublicHostedZoneId:** You must have a public hosted zone in Route 53 with your domain name (i.e. mydomain.com). Enter the Hosted Zone Id for this hosted zone.
     * **DomainName:** Enter your custom domain name (i.e. service2.mydomain.com).
     * **CertificateArn** You must have a ACM Certificate that covers your Custom Domain namespace (i.e. *.mydomain.com) on the region your are deploying this stack. Enter the ARN for this certificate here. **Make sure you are getting the certificate arn for the right region**.
-    * Route53ArcClusterArn: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the Route 53 Cluster Arn created during that deployment.
+    * **Route53ArcClusterArn:** Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the Route 53 Cluster Arn created during that deployment.
     * **Service2ControlPlaneArn**: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the  Route 53 ARC control pane Arn for service 2.
     * **Stage:** Enter the name of the stage within your API Gateway that you would like to map to your custom domain name.
     * **FailoverType:** Accept the defauls and use **PRIMARY** here.
@@ -55,7 +55,7 @@ Important: this application uses various AWS services and there are costs associ
     * **PublicHostedZoneId:** You must have a public hosted zone in Route 53 with your domain name (i.e. mydomain.com). Enter the Hosted Zone Id for this hosted zone.
     * **DomainName:** Enter your custom domain name (i.e. service2.mydomain.com).
     * **CertificateArn** You must have a ACM Certificate that covers your Custom Domain namespace (i.e. *.mydomain.com) on the region your are deploying this stack. Enter the ARN for this certificate here. **Make sure you are getting the certificate arn for the right region**.
-    * Route53ArcClusterArn: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the Route 53 Cluster Arn created during that deployment.
+    * **Route53ArcClusterArn:** Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the Route 53 Cluster Arn created during that deployment.
     * **Service2ControlPlaneArn**: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the  Route 53 ARC control pane Arn for service 2.
     * **Stage:** Enter the name of the stage within your API Gateway that you would like to map to your custom domain name.
     * **FailoverType:** Accept the defauls and use **SECONDARY** here.
@@ -91,7 +91,7 @@ Now test that one of your regional services is accessible via your custom fomain
 You can get that URL from the **CustomDomainNameEndpoint** output parameter.
 Eg: 
 ```bash
-curl https://service.mydomain.com
+curl https://service2.mydomain.com
 ```
 
 You should see a response similar to:
@@ -105,7 +105,7 @@ TODO: add failover command
 
 ```
 
-After 1 or 2 minutes, you should see responses to service 2 custom domain endpoint (i.e https://service.mydomain.com) being serverd from the secondary region:
+After 1 or 2 minutes, you should see responses to service 2 custom domain endpoint (i.e https://service2.mydomain.com) being serverd from the secondary region:
 ```json
 {"service": "service2", "region": "your-secondary-region"}
 ```
