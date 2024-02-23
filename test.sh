@@ -1,8 +1,8 @@
 #!/bin/bash
 
-external_api_url==https://externalapi.example.com
-service1_url=https://service1.example.com
-service2_url=https://service2.example.com
+external_api_url=https://example.com
+service1_url=https://example.com/service1
+service2_url=https://example.com/service2
 
 while true; do
   current_time=$(date +"%T")
