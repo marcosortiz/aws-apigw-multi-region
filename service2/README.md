@@ -1,8 +1,8 @@
-# Serverless patterns - Multi-Region REST API Failover with Route 53 ARC: Service 1
+# Serverless patterns - Multi-Region REST API Failover with Route 53 ARC: Service 2
 
-Service1 consists of a regional rest API with a single root path calling a Lambda function.
+Service2 consists of a regional rest API with a single root path calling a Lambda function.
 
-This pattern deploys service1 on a primary and secondaty region. It will also setup Route53 public failover records and Route 53 ARC routing controls for you.
+This pattern deploys service2 on a primary and secondaty region. It will also setup Route53 public failover records and Route 53 ARC routing controls for you.
 
 Learn more about this pattern at Serverless Land Patterns: << Add the live URL here >>
 
@@ -23,7 +23,7 @@ Important: this application uses various AWS services and there are costs associ
     ```
 1. Change directory to the pattern directory:
     ```
-    cd aws-apigw-multi-region/service1
+    cd aws-apigw-multi-region/service2
     ```
 1. From the command line, use AWS SAM to deploy the AWS resources for the pattern as specified in the template.yml file on the primary region:
     ```
@@ -33,14 +33,14 @@ Important: this application uses various AWS services and there are costs associ
     * **Stack Name:** Enter a stack name.
     * **AWS Region:** Enter the desired AWS Region. This pattern has been tested with both us-east-1 and us-east-2.
     * **PublicHostedZoneId:** You must have a public hosted zone in Route 53 with your domain name (i.e. mydomain.com). Enter the Hosted Zone Id for this hosted zone.
-    * **DomainName:** Enter your custom domain name (i.e. service1.mydomain.com).
+    * **DomainName:** Enter your custom domain name (i.e. service2.mydomain.com).
     * **CertificateArn** You must have a ACM Certificate that covers your Custom Domain namespace (i.e. *.mydomain.com) on the region your are deploying this stack. Enter the ARN for this certificate here. **Make sure you are getting the certificate arn for the right region**.
     * Route53ArcClusterArn: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the Route 53 Cluster Arn created during that deployment.
-    * **Service1ControlPlaneArn**: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the  Route 53 ARC control pane Arn for service 1.
+    * **Service2ControlPlaneArn**: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the  Route 53 ARC control pane Arn for service 2.
     * **Stage:** Enter the name of the stage within your API Gateway that you would like to map to your custom domain name.
     * **FailoverType:** Accept the defauls and use **PRIMARY** here.
     * Allow SAM CLI to create IAM roles with the required permissions.
-    * Allow SAM CLI to create the Service1LambdaRegionalApi Lambda function.
+    * Allow SAM CLI to create the Service2LambdaRegionalApi Lambda function.
     * **SAM configuration environment** Accept the **primary** default value.
 
     Once you have run `sam deploy --guided --config-env primary` mode once and saved arguments to a configuration file (samconfig.toml), you can use `sam deploy --config-env primary` in future to use these defaults.
@@ -53,14 +53,14 @@ Important: this application uses various AWS services and there are costs associ
     * **Stack Name:** Enter a stack name.
     * **AWS Region:** Enter the desired AWS Region. This pattern has been tested with both us-east-1 and us-east-2. **Make sure to use a different region from the prymary one**.
     * **PublicHostedZoneId:** You must have a public hosted zone in Route 53 with your domain name (i.e. mydomain.com). Enter the Hosted Zone Id for this hosted zone.
-    * **DomainName:** Enter your custom domain name (i.e. service1.mydomain.com).
+    * **DomainName:** Enter your custom domain name (i.e. service2.mydomain.com).
     * **CertificateArn** You must have a ACM Certificate that covers your Custom Domain namespace (i.e. *.mydomain.com) on the region your are deploying this stack. Enter the ARN for this certificate here. **Make sure you are getting the certificate arn for the right region**.
     * Route53ArcClusterArn: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the Route 53 Cluster Arn created during that deployment.
-    * **Service1ControlPlaneArn**: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the  Route 53 ARC control pane Arn for service 1.
+    * **Service2ControlPlaneArn**: Before deploy this stack, you should deploy the Route 53 infrastructure. Add here the  Route 53 ARC control pane Arn for service 2.
     * **Stage:** Enter the name of the stage within your API Gateway that you would like to map to your custom domain name.
     * **FailoverType:** Accept the defauls and use **SECONDARY** here.
     * Allow SAM CLI to create IAM roles with the required permissions.
-    * Allow SAM CLI to create the Service1LambdaRegionalApi Lambda function.
+    * Allow SAM CLI to create the Service2LambdaRegionalApi Lambda function.
     * **SAM configuration environment** Accept the **primary** default value.
 
     Once you have run `sam deploy --guided --config-env secondary` mode once and saved arguments to a configuration file (samconfig.toml), you can use `sam deploy --config-env secondary` in future to use these defaults.
@@ -83,7 +83,7 @@ curl https://aabbccddee.execute-api.us-east-1.amazonaws.com/prod
 
 You should see a response similar to:
 ```json
-{"service": "service1", "region": "your-selected-region"}
+{"service": "service2", "region": "your-selected-region"}
 ```
 
 
@@ -96,18 +96,18 @@ curl https://service.mydomain.com
 
 You should see a response similar to:
 ```json
-{"service": "service1", "region": "your-primary-region"}
+{"service": "service2", "region": "your-primary-region"}
 ```
 
-You can failover service 1 fromthe primary to the secondary region by running the following command:
+You can failover service 2 fromthe primary to the secondary region by running the following command:
 ```bash
 TODO: add failover command
 
 ```
 
-After 1 or 2 minutes, you should see responses to service 1 custom domain endpoint (i.e https://service.mydomain.com) being serverd from the secondary region:
+After 1 or 2 minutes, you should see responses to service 2 custom domain endpoint (i.e https://service.mydomain.com) being serverd from the secondary region:
 ```json
-{"service": "service1", "region": "your-secondary-region"}
+{"service": "service2", "region": "your-secondary-region"}
 ```
 
 ## Cleanup
