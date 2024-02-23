@@ -71,8 +71,7 @@ Important: this application uses various AWS services and there are costs associ
 
 ## How it works
 
-This pattern deploys an Amazon API Gateway Rest Regional API with a Lambda integration. The AWS Lambda function is written in Python3.9. The function returns a small message and a status code to the caller.
-The inline code of the lambda is written in the template itself.
+TODO: update
 
 ## Testing
 
