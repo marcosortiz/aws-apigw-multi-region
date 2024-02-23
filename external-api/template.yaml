@@ -19,6 +19,9 @@ Parameters:
   Service1HttpsEndpoint:
     Type: String
 
+  Service2HttpsEndpoint:
+    Type: String
+
   CertificateArn:
     Type: String
 
