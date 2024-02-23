@@ -7,20 +7,22 @@ Parameters:
   PublicHostedZoneId:
     Type: String
 
+  DomainName:
+    Type: String
+    Default: service1.mydomain.com
+
+  CertificateArn:
+    Type: String
+
   Route53ArcClusterArn:
     Type: String
 
   Service1ControlPanelArn:
     Type: String
 
-  DomainName:
-    Type: String
-
-  CertificateArn:
-    Type: String
-
   Stage:
     Type: String
+    Default: prod
   
   FailoverType:
     Type: String
@@ -65,7 +67,7 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name: service1
-      StageName: prod
+      StageName: !Ref Stage
       EndpointConfiguration: REGIONAL
 
   # Custom domains
@@ -145,7 +147,7 @@ Resources:
 Outputs:
   EndpointUrl:
     Description: 'REST regional endpoint URL'
-    Value: !Sub 'https://${ApiRegional}.execute-api.${AWS::Region}.amazonaws.com/prod'
+    Value: !Sub 'https://${ApiRegional}.execute-api.${AWS::Region}.amazonaws.com/${Stage}'
   CustomDomainNameEndpoint:
     Description: Custom Domain Name endpoint
     Value: !Sub "https://${DomainName}"
