@@ -1,4 +1,4 @@
-# Serverless patterns - Multi-Region REST API Failover with Route 53 ARC: Route 53 ARC Infrastructure
+# Serverless patterns - Multi-Region REST API Failover: Route 53 ARC Infrastructure
 
 This pattern creates a Route 53 ARC cluster and one control panel per api to be used during the failover process.
 

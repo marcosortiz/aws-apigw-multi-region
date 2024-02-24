@@ -1,4 +1,4 @@
-# Amazon API Gateway Multi-Region REST APIs
+# Serverless patterns - Multi-Region REST API Failover
 
 This pattern creates a multi-region active-passive external API that proxies independent multi-region active-passive service APIs.
 
