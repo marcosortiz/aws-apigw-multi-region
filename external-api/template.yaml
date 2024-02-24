@@ -7,23 +7,26 @@ Parameters:
   PublicHostedZoneId:
     Type: String
 
+  DomainName:
+    Type: String
+    Default: externalapi.mydomain.com
+
+  CertificateArn:
+    Type: String
+
   Route53ArcClusterArn:
     Type: String
 
   ExternalApiControlPanelArn:
     Type: String
-
-  DomainName:
-    Type: String
   
   Service1HttpsEndpoint:
     Type: String
+    Default: https://service1.mydomain.com
 
   Service2HttpsEndpoint:
     Type: String
-
-  CertificateArn:
-    Type: String
+    Default: https://service2.mydomain.com
 
   Stage:
     Type: String
