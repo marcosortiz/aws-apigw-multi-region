@@ -1,6 +1,8 @@
 # Serverless patterns - Multi-Region REST API Failover
 
-This pattern creates a multi-region active-passive external API that proxies independent multi-region active-passive service APIs.
+This pattern creates a multi-region active-passive external API that proxies independent multi-region active-passive service APIs. You can choose the primary and secondary region for each one of the services (external api, service 1 and service 2) independelty. You can also independently failover each one of the services.
+
+![alt text](images/diagram.jpg)
 
 Learn more about this pattern at Serverless Land Patterns: https://serverlessland/patterns/apigateway-multi-region-active-passive-rest-apis
 
@@ -40,6 +42,26 @@ This example demonstrates the failover only and does not encompass authenticatio
 TODO: update with more details
 
 Deploy all 3 applications to both primary and secondary regions. Traffic will initially be routed to the primary region only. Use route 53 ARC to independently failover the applications to the primary or secondary region. Route 53 will then route traffic the the new chose region for each service.
+
+Edit the test.sh file on lines 3-5 to point to your api endpoint. Then give that file execution permissions and run it:
+
+```bash
+chmod +x ./test/sh
+./test.sh
+```
+
+It will send an HTTP request to each oneof your 3 endepoints every 5 minutes. You can then failover your services independently and see the responses being served from different regions.
+
+For example, on the test below, we initially had the external api and service 1 routing traffic to us-east-1. Service 2 was initially routing traffic to us-west-2.
+
+
+![alt text](images/testing.jpg)
+
+1. We failed over service2 from us-west-2 to us-east-1.
+1. We failed over service1 from us-east-1 to us-west-2.
+1. We failed over the external api from us-east-1 to us-west-2.
+
+> Notes: Each service (external app, service1 and servce 2) have their own Route 53 ARC control pannel. To manage [routing controls](https://docs.aws.amazon.com/r53recovery/latest/dg/routing-control.html) for each service, you need to use their specific control panels. You can check the [route53 stack](./route53/README.md) outputs to see the details for each control panel.
 
 
 ## Cleanup
