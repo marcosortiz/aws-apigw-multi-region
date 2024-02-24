@@ -71,7 +71,11 @@ Important: this application uses various AWS services and there are costs associ
 
 ## How it works
 
-TODO: update
+This stack will deploy an Amazon API Gateway Rest Regional API 3 paths:
+
+1. **/:** This path has a Lambda integration. The AWS Lambda function is written in Python3.9. The function returns a small message with the service name and the region it is deployed at. The inline code of the lambda is written in the template itself.
+1. **/service1**: This path has a simple public HTTP endpoint integration to service1 (i.e https://mydomain.com/service1).
+1. **/service2**: This path has a simple public HTTP endpoint integration to service2 (i.e https://mydomain.com/service2).
 
 ## Testing
 
@@ -87,6 +91,18 @@ You should see a response similar to:
 {"service": "external-api", "region": "your-selected-region"}
 ```
 
+You can also test the HTTP integrations:
+```bash
+curl https://aabbccddee.execute-api.us-east-1.amazonaws.com/prod/service1
+curl https://aabbccddee.execute-api.us-east-1.amazonaws.com/prod/service2
+```
+
+You should see responses similar to:
+```json
+{"service": "service1", "region": "service1-active-region"}
+{"service": "service2", "region": "service2-active-region"}
+```
+
 
 Now test that one of your regional services is accessible via your custom fomain.
 You can get that URL from the **CustomDomainNameEndpoint** output parameter.
@@ -100,13 +116,22 @@ You should see a response similar to:
 {"service": "external-api", "region": "your-primary-region"}
 ```
 
-You can failover service 1 fromthe primary to the secondary region by running the following command:
+You can also test the HTTP integrations:
 ```bash
-TODO: add failover command
-
+curl https://externalapi.mydomain.com/service1
+curl https://externalapi.mydomain.com/service2
 ```
 
-After 1 or 2 minutes, you should see responses to service 1 custom domain endpoint (i.e https://externalapi.mydomain.com) being serverd from the secondary region:
+You should see responses similar to:
+```json
+{"service": "service1", "region": "service1-active-region"}
+{"service": "service2", "region": "service2-active-region"}
+```
+
+You can failover the external api from the primary to the secondary region using Route53 ARC
+> Notes: The external api have its own Route 53 ARC control pannel. To manage [routing controls](https://docs.aws.amazon.com/r53recovery/latest/dg/routing-control.html), you need to use its specific control panel. You can check the [route53 stack](./route53/README.md) outputs to see the details for the external api control panel.
+
+After 1 or 2 minutes, you should see responses to the external api custom domain endpoint (i.e https://externalapi.mydomain.com) being serverd from the secondary region:
 ```json
 {"service": "external-api", "region": "your-secondary-region"}
 ```

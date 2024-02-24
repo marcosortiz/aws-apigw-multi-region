@@ -38,7 +38,7 @@ Important: this application uses various AWS services and there are costs associ
 
 ## How it works
 
-TODO: update
+This stack will create a [Route53 ARC cluster](https://docs.aws.amazon.com/r53recovery/latest/dg/introduction-components.html) and 3 control panels, one for each service (extarnal api, service 1 and service 2) so you can independently manage [routing controls](https://docs.aws.amazon.com/r53recovery/latest/dg/routing-control.html).
 
 ## Testing
 
