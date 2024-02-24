@@ -39,8 +39,6 @@ This example demonstrates the failover only and does not encompass authenticatio
 
 ## Testing
 
-TODO: update with more details
-
 Deploy all 3 applications to both primary and secondary regions. Traffic will initially be routed to the primary region only. Use route 53 ARC to independently failover the applications to the primary or secondary region. Route 53 will then route traffic the the new chose region for each service.
 
 Edit the test.sh file on lines 3-5 to point to your api endpoint. Then give that file execution permissions and run it:
