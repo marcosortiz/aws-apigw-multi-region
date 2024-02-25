@@ -1,6 +1,8 @@
 # Serverless patterns - Multi-Region REST API Failover
 
-This pattern creates a multi-region active-passive external API that proxies independent multi-region active-passive service APIs. You can choose the primary and secondary region for each one of the services (external api, service 1 and service 2) independelty. You can also independently failover each one of the services.
+Companies often have multiple teams managing different services behind a shared public API. In disaster recovery scenarios, each team needs the ability to fail over their services independently.
+
+This pattern demonstrates a multi-region active-passive external API that proxies to independent multi-region active-passive service APIs. The primary and secondary regions can be configured independently for the external API and each internal service. This allows you to fail over the external API and each internal service independently as needed for disaster recovery.
 
 ![alt text](images/diagram.jpg)
 
